@@ -1,0 +1,33 @@
+<h1>List Page</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <form action="/search" method="GET">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="query" placeholder="Search..." value="{{query}}">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="card-deck">
+            {{#each items}}
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{this.name}}</h5>
+                            <p class="card-text">{{this.description}}</p>
+                            <a href="/list/{{this.id}}" class="btn btn-primary">View</a>
+                            <a href="/delete/{{this.id}}" class="btn btn-danger" style="float: right;">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <br>
+            {{/each}}
+            
+        </div>
+    </div>
+</div>

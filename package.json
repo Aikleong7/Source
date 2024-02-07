@@ -1,0 +1,32 @@
+{
+  "name": "ecp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@handlebars/allow-prototype-access": "^1.0.5",
+    "aws-sdk": "^2.1550.0",
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-handlebars": "^7.1.2",
+    "express-handlebars-sections": "^1.0.1",
+    "express-mysql-session": "^3.0.0",
+    "express-session": "^1.18.0",
+    "handlebars": "^4.7.8",
+    "install": "^0.13.0",
+    "moment": "^2.30.1",
+    "multer": "^1.4.5-lts.1",
+    "npm": "^10.3.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "sequelize": "^6.35.2"
+  }
+}
