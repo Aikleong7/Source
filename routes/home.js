@@ -14,7 +14,6 @@ AWS.config.update({ region:"us-east-1"});
 
 const rekognition = new AWS.Rekognition();
 const sns = new AWS.SNS();
-const bucket = await getSecretValue();
 const secretManager = new AWS.SecretsManager(); 
 const secretName = 's3buckettest';
 const s3 = new AWS.S3();
@@ -50,6 +49,7 @@ router.post('/form', upload.single("file"), async (req, res) => {
     const { name, description, category } = req.body;
     const id = crypto.randomUUID();
     const key = id + ".png";
+    const bucket = await getSecretValue();
     // console.log(req.body)
     const image = req.file; // Assuming you have middleware set up to handle file uploads
     const params = {
@@ -113,6 +113,7 @@ router.get('/list', async (req, res) => {
 router.get('/list/:id', async (req, res) => {
   const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id } };
   const randomNum = Math.floor(Math.random() * 1000)
+  const bucket = await getSecretValue();
   try {
     const data = await dynamodb.get(params).promise();
     res.render('detail', { item: data.Item, addNumbersToSrc: randomNum, bucket: bucket});
@@ -146,8 +147,9 @@ router.post('/update/:id',upload.single("file"), async (req, res) => {
   const image = req.file; // Assuming you have middleware set up to handle file uploads
   const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': category } };
   const key = req.params.id  + ".png";
+  const bucket = await getSecretValue();
   const s3params = {
-      Bucket: 'cad-assignment',
+      Bucket: bucket,
       Key: key,
       Body: image.buffer,
       ContentType: image.mimetype
