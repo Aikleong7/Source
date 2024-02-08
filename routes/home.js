@@ -14,7 +14,7 @@ AWS.config.update({ region:"us-east-1"});
 
 const rekognition = new AWS.Rekognition();
 const sns = new AWS.SNS();
-const bucket = 'cad-assignment';
+const bucket = await getSecretValue();
 const secretManager = new AWS.SecretsManager(); 
 const secretName = 's3buckettest';
 const s3 = new AWS.S3();
@@ -22,18 +22,17 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 const getSecretValue = async () => {
   try {
     const secretData = await secretManager.getSecretValue({ SecretId: secretName }).promise();
-    const secretValue = JSON.parse(secretData.SecretString);
+    // const secretValue = await JSON.parse(secretData.SecretString);
     // Use the secret value here
-    return secretValue["s3bucket"];
+    return secretData.SecretString;
   } catch (error) {
     console.error(error);
     // Handle error
   }
 };
 // GET request to render the login page
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
  
-  console.log(getSecretValue());
     res.render('home'); // Assuming you have a view engine set up to render the login page
 });
 router.get('/form', (req, res) => {
