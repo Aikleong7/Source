@@ -10,14 +10,30 @@ AWS.config.update({ region:process.env.AWS_REGION ,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   sessionToken: process.env.AWS_SESSION_TOKEN
 });
+// AWS.config.update({ region:"us-east-1"});
+
 const rekognition = new AWS.Rekognition();
 const sns = new AWS.SNS();
 const bucket = 'cad-assignment';
+const secretManager = new AWS.SecretsManager(); 
+const secretName = 's3buckettest';
 const s3 = new AWS.S3();
 const dynamodb = new AWS.DynamoDB.DocumentClient();
+
 // GET request to render the login page
 router.get('/', (req, res) => {
-  
+  const getSecretValue = async () => {
+    try {
+      const secretData = await secretManager.getSecretValue({ SecretId: secretName }).promise();
+      const secretValue = JSON.parse(secretData.SecretString);
+      // Use the secret value here
+      console.log(secretValue);
+    } catch (error) {
+      console.error(error);
+      // Handle error
+    }
+  };
+  getSecretValue();
     res.render('home'); // Assuming you have a view engine set up to render the login page
 });
 router.get('/form', (req, res) => {
@@ -100,7 +116,7 @@ router.get('/list/:id', async (req, res) => {
   const randomNum = Math.floor(Math.random() * 1000)
   try {
     const data = await dynamodb.get(params).promise();
-    res.render('detail', { item: data.Item, addNumbersToSrc: randomNum});
+    res.render('detail', { item: data.Item, addNumbersToSrc: randomNum, bucket: bucket});
   } catch (error) {
     console.error(error);
     res.status(500).send('Error reading data from DynamoDB');
