@@ -15,9 +15,7 @@ const express = require("express");
 
 const { engine } = require("express-handlebars");
 // var express_handlebars_sections = require("express-handlebars-sections");
-const {
-  allowInsecurePrototypeAccess,
-} = require("@handlebars/allow-prototype-access");
+
 
 const Handlebars = require("handlebars");
 const passport = require("passport");
@@ -29,7 +27,7 @@ require("dotenv").config();
 app.engine(
   "handlebars",
   engine({
-    handlebars: allowInsecurePrototypeAccess(Handlebars),
+    handlebars: Handlebars,
     defaultLayout: "main" // Specify default template views/layout/main.handlebar
   })
 );
