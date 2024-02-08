@@ -5,9 +5,12 @@ const upload = require('../config/uploadimg');
 const passport = require("passport");
 const AWS = require('aws-sdk');
 
-AWS.config.update({ region:"us-east-1"
-});
-// AWS.config.update({ region:"us-east-1"});
+// AWS.config.update({ region:process.env.AWS_REGION ,
+//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   sessionToken: process.env.AWS_SESSION_TOKEN
+// });
+AWS.config.update({ region:"us-east-1"});
 
 const rekognition = new AWS.Rekognition();
 const sns = new AWS.SNS();
@@ -16,21 +19,21 @@ const secretManager = new AWS.SecretsManager();
 const secretName = 's3buckettest';
 const s3 = new AWS.S3();
 const dynamodb = new AWS.DynamoDB.DocumentClient();
-
+const getSecretValue = async () => {
+  try {
+    const secretData = await secretManager.getSecretValue({ SecretId: secretName }).promise();
+    const secretValue = JSON.parse(secretData.SecretString);
+    // Use the secret value here
+    return secretValue["s3bucket"];
+  } catch (error) {
+    console.error(error);
+    // Handle error
+  }
+};
 // GET request to render the login page
 router.get('/', (req, res) => {
-  const getSecretValue = async () => {
-    try {
-      const secretData = await secretManager.getSecretValue({ SecretId: secretName }).promise();
-      const secretValue = JSON.parse(secretData.SecretString);
-      // Use the secret value here
-      console.log(secretValue);
-    } catch (error) {
-      console.error(error);
-      // Handle error
-    }
-  };
-  getSecretValue();
+ 
+  console.log(getSecretValue());
     res.render('home'); // Assuming you have a view engine set up to render the login page
 });
 router.get('/form', (req, res) => {
