@@ -150,7 +150,6 @@ router.post('/update/:id',upload.single("file"), async (req, res) => {
   const { name, description, category } = req.body;
   const image = req.file; // Assuming you have middleware set up to handle file uploads
   const categorystring = category.charAt(0).toUpperCase() + category.slice(1);
-  const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': categorystring } };
   const key = req.params.id  + ".png";
   const bucket = await getSecretValue();
   const s3params = {
@@ -159,9 +158,28 @@ router.post('/update/:id',upload.single("file"), async (req, res) => {
       Body: image.buffer,
       ContentType: image.mimetype
   }
+  const recogparams = {
+    Image: {
+        S3Object: {
+            Bucket: bucket,
+            Name: key
+        }
+    },
+    MaxLabels: 10 // Maximum number of labels to return
+};
   try {
     await s3.upload(s3params).promise();
-    await dynamodb.update(params).promise();
+    rekognition.detectLabels(recogparams, async (err, data) => {
+      if (err) {
+          console.log('Error:', err);
+      } else {
+        const label = data.Labels[0]["Categories"][0]["Name"]
+        const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c, aicategory = :ac', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': categorystring, ":ac":label } };
+ 
+        await dynamodb.update(params).promise();
+        
+      }});
+    
     res.redirect('/list');
   } catch (error) {
     console.error(error);
