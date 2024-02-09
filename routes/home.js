@@ -15,7 +15,7 @@ AWS.config.update({ region:"us-east-1"});
 const rekognition = new AWS.Rekognition();
 const sns = new AWS.SNS();
 const secretManager = new AWS.SecretsManager(); 
-const secretName = 's3buckettest';
+const secretName = 'MySecret';
 const s3 = new AWS.S3();
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 const getSecretValue = async () => {
