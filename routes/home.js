@@ -37,13 +37,6 @@ router.get('/', async (req, res) => {
 router.get('/form', (req, res) => {
     res.render('form'); // Assuming you have a view engine set up to render the login page
 });
-router.get("/test", async(req, res) => {
-  const searchParams = { TableName: 'cad-assignment-user', FilterExpression: 'category = :category', ExpressionAttributeValues: { ':category': "123123" } }; 
-  const searchResult = await dynamodb.scan(searchParams).promise(); 
-  console.log(searchResult.Items); // Do something with the search result
-
-});
-
 // POST request to handle form submission
 router.post('/form', upload.single("file"), async (req, res) => {
     const { name, description, category } = req.body;
@@ -76,6 +69,7 @@ router.post('/form', upload.single("file"), async (req, res) => {
         if (err) {
             console.log('Error:', err);
         } else {
+          
           const searchParams = { TableName: 'cad-assignment-user', FilterExpression: 'category = :category', ExpressionAttributeValues: { ':category': String(category) } }; 
           const searchResult = await dynamodb.scan(searchParams).promise(); 
           for (const item of searchResult.Items) {
@@ -86,10 +80,20 @@ router.post('/form', upload.single("file"), async (req, res) => {
             };
             await sns.publish(publishParams).promise();
           } 
-
+          const categorystring = category.charAt(0).toUpperCase() + category.slice(1);
             const label = data.Labels[0]["Categories"][0]["Name"]
             const dynamodbparams = { 
-              TableName: 'cad-assignment-table', Item: { id: id, name: name, description: description, category: label } };
+              TableName: 'cad-assignment-table', Item: { id: id, name: name, description: description, aicategory: label,category:String(categorystring)  } };
+          const aisearchParams = { TableName: 'cad-assignment-user', FilterExpression: 'category = :category', ExpressionAttributeValues: { ':category': String(label) } }; 
+          const aisearchResult = await dynamodb.scan(aisearchParams).promise(); 
+          for (const item of aisearchResult.Items) {
+            const publishParams = {
+              Message: 'Hello, relevant category have new item found!',
+              Subject: 'Notification',
+              TopicArn: item.topicArn
+            };
+            await sns.publish(publishParams).promise();
+          } 
             await dynamodb.put(dynamodbparams).promise();
         }
     });
@@ -145,7 +149,8 @@ router.get('/update/:id', async (req, res) => {
 router.post('/update/:id',upload.single("file"), async (req, res) => {
   const { name, description, category } = req.body;
   const image = req.file; // Assuming you have middleware set up to handle file uploads
-  const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': category } };
+  const categorystring = category.charAt(0).toUpperCase() + category.slice(1);
+  const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': categorystring } };
   const key = req.params.id  + ".png";
   const bucket = await getSecretValue();
   const s3params = {
