@@ -149,6 +149,7 @@ router.get('/update/:id', async (req, res) => {
 router.post('/update/:id',upload.single("file"), async (req, res) => {
   const { name, description, category } = req.body;
   const image = req.file; // Assuming you have middleware set up to handle file uploads
+  console.log(image)
   const categorystring = category.charAt(0).toUpperCase() + category.slice(1);
   const key = req.params.id  + ".png";
   const bucket = await getSecretValue();
