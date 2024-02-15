@@ -149,42 +149,43 @@ router.get('/update/:id', async (req, res) => {
 router.post('/update/:id',upload.single("file"), async (req, res) => {
   const { name, description, category } = req.body;
   const image = req.file; // Assuming you have middleware set up to handle file uploads
-  console.log(image)
-  const categorystring = category.charAt(0).toUpperCase() + category.slice(1);
-  const key = req.params.id  + ".png";
-  const bucket = await getSecretValue();
-  const s3params = {
-      Bucket: bucket,
-      Key: key,
-      Body: image.buffer,
-      ContentType: image.mimetype
-  }
-  const recogparams = {
-    Image: {
-        S3Object: {
-            Bucket: bucket,
-            Name: key
-        }
-    },
-    MaxLabels: 10 // Maximum number of labels to return
-};
-  try {
-    await s3.upload(s3params).promise();
-    rekognition.detectLabels(recogparams, async (err, data) => {
-      if (err) {
-          console.log('Error:', err);
-      } else {
-        const label = data.Labels[0]["Categories"][0]["Name"]
-        const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c, aicategory = :ac', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': categorystring, ":ac":label } };
- 
-        await dynamodb.update(params).promise();
-        
-      }});
-    
-    res.redirect('/list');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error updating data in DynamoDB');
+  if (image === undefined) {
+    const categorystring = category.charAt(0).toUpperCase() + category.slice(1);
+    const key = req.params.id  + ".png";
+    const bucket = await getSecretValue();
+    const s3params = {
+        Bucket: bucket,
+        Key: key,
+        Body: image.buffer,
+        ContentType: image.mimetype
+    }
+    const recogparams = {
+      Image: {
+          S3Object: {
+              Bucket: bucket,
+              Name: key
+          }
+      },
+      MaxLabels: 10 
+  };
+    try {
+      await s3.upload(s3params).promise();
+      rekognition.detectLabels(recogparams, async (err, data) => {
+        if (err) {
+            console.log('Error:', err);
+        } else {
+          const label = data.Labels[0]["Categories"][0]["Name"]
+          const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d, category = :c, aicategory = :ac', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description, ':c': categorystring, ":ac":label } };
+  
+          await dynamodb.update(params).promise();
+          
+        }});
+      
+      res.redirect('/list');
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error updating data in DynamoDB');
+    }
   }
 });
 router.get('/search', async (req, res) => {
