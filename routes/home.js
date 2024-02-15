@@ -187,6 +187,11 @@ router.post('/update/:id',upload.single("file"), async (req, res) => {
       res.status(500).send('Error updating data in DynamoDB');
     }
   }
+  else {
+    const params = { TableName: 'cad-assignment-table', Key: { id: req.params.id }, UpdateExpression: 'set #n = :n, description = :d', ExpressionAttributeNames: { '#n': 'name' }, ExpressionAttributeValues: { ':n': name, ':d': description } };
+    await dynamodb.update(params).promise();
+    res.redirect('/list');
+  }
 });
 router.get('/search', async (req, res) => {
   const { query } = req.query;
